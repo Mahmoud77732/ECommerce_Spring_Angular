@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../common/product';
 import { ActivatedRoute } from '@angular/router';
+import { CartItem } from '../../common/cart-item';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-product-list',
@@ -22,7 +24,7 @@ export class ProductListComponent implements OnInit {
 
   previousKeyword: string = "";
 
-  constructor(private productService: ProductService,
+  constructor(private cartService : CartService, private productService: ProductService,
     private route: ActivatedRoute) {
   }
 
@@ -113,7 +115,8 @@ export class ProductListComponent implements OnInit {
 
   addToCart(theProduct : Product){
     console.log(`Adding to cart: ${theProduct.name}, ${theProduct.unitPrice}`);
-    // TODO: do the r4eal work
+    const theCartItem = new CartItem(theProduct);
+    this.cartService.addToCart(theCartItem);
   }
 
 }
