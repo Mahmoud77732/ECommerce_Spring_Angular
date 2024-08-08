@@ -4,8 +4,10 @@
  */
 package com.sng.ecommerce_sboot.config;
 
+import com.sng.ecommerce_sboot.entity.Country;
 import com.sng.ecommerce_sboot.entity.Product;
 import com.sng.ecommerce_sboot.entity.ProductCategory;
+import com.sng.ecommerce_sboot.entity.State;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.EntityType;
 import java.util.ArrayList;
@@ -31,52 +33,53 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
     public MyDataRestConfig(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-    
-    
-    
+
     /**
      * Read Only approach
+     *
      * @param config
      * @param cors
      */
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
         HttpMethod[] theUnSupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE};
-        // disable HTTP methods for Product: PUT, POST and DELETE
-        config.getExposureConfiguration()
-                .forDomainType(Product.class)
-                .withItemExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions))
-                .withCollectionExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions));
         
-        // disable HTTP methods for ProductCategory: PUT, POST and DELETE
-        config.getExposureConfiguration()
-                .forDomainType(ProductCategory.class)
-                .withItemExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions))
-                .withCollectionExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions));
-    
+        // disable HTTP methods for Entity Classes: PUT, POST and DELETE
+        disableHttpMethods(ProductCategory.class, config, theUnSupportedActions);
+        disableHttpMethods(Product.class, config, theUnSupportedActions);
+        disableHttpMethods(Country.class, config, theUnSupportedActions);
+        disableHttpMethods(State.class, config, theUnSupportedActions);
+
         // call an internal helper method
         exposeIds(config);
     }
 
+    private void disableHttpMethods(Class theEntityClass, RepositoryRestConfiguration config, HttpMethod[] theUnSupportedActions) {
+        config.getExposureConfiguration()
+                .forDomainType(theEntityClass)
+                .withItemExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions))
+                .withCollectionExposure((metadata, httpMethods) -> httpMethods.disable(theUnSupportedActions));
+    }
+
     // developed method to expose the IDs
     // spring-data-rest don't expose IDs for objs by default
-    private void exposeIds(RepositoryRestConfiguration config){
+    private void exposeIds(RepositoryRestConfiguration config) {
         // expose entity IDs
-        
+
         // get a list of all entity classes from the entity manager
         Set<EntityType<?>> entities = entityManager.getMetamodel().getEntities();
-        
+
         // create an array of the entity types
         List<Class> entityClasses = new ArrayList<>();
-        
+
         // get the entity types for the entities
         for (EntityType tempEntityType : entities) {
             entityClasses.add(tempEntityType.getJavaType());
         }
-        
+
         // expose the entity IDs for the array of entity/domain types
         Class[] domainTypes = entityClasses.toArray(new Class[0]);
         config.exposeIdsFor(domainTypes);
     }
-    
+
 }
